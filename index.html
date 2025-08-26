@@ -52,19 +52,54 @@
         .stage { position: relative; display:grid; place-items:center; }
         canvas#wheel { width: 720px; aspect-ratio: 1/1; background: radial-gradient(65% 60% at 50% 45%, rgba(255,255,255,.04), rgba(255,255,255,0)); border-radius: 50%; filter: drop-shadow(0 20px 40px rgba(0,0,0,.35)); }
 
-      /* Pointer */
-      .pointer{
-        z-index: 100;
-        position:absolute;
-        top: -5px;
-        left: 50%;
-        transform: translateX(-50%) rotate(180deg); /* ← added */
-        width: 0; height: 0;
-        border-left: 16px solid transparent;
-        border-right: 16px solid transparent;
-        border-bottom: 28px solid var(--green);
-        filter: drop-shadow(0 6px 12px rgba(0,0,0,.5));
-      }
+    /* Pointer — beveled/3D look */
+    .pointer{
+      z-index: 10;
+      position: absolute;
+      top: 50%;
+      left: auto;
+      right: -6px;                         /* nudge to sit on the rim */
+      transform: translateY(-50%) rotate(-90deg); /* point left */
+      width: 44px;                 /* tweak size to taste */
+      height: 36px;
+
+      /* triangle shape */
+      clip-path: polygon(50% 0, 0 100%, 100% 100%);
+
+      /* base gradient for depth */
+      background: linear-gradient(
+        180deg,
+        #a8f0aa 0%,
+        var(--green) 55%,
+        #2d7f30 100%
+      );
+
+      /* soft glow + depth */
+      box-shadow:
+        0 6px 12px rgba(0,0,0,.45),           /* outer shadow */
+        inset 0 1px 0 rgba(255,255,255,.45),  /* top bevel highlight */
+        inset 0 -8px 10px rgba(0,0,0,.25);    /* inner bottom shading */
+      border-radius: 2px; /* tiny corner smoothing */
+      filter: drop-shadow(0 3px 8px rgba(0,0,0,.35));
+    }
+
+    /* subtle specular highlight */
+    .pointer::before{
+      content: "";
+      position: absolute; inset: 4px 8px 10px; /* shrink highlight area */
+      clip-path: inherit;
+      background: linear-gradient(180deg, rgba(255,255,255,.6), rgba(255,255,255,0));
+      pointer-events: none;
+    }
+
+    /* faint edge shade on one side for faux bevel */
+    .pointer::after{
+      content: "";
+      position: absolute; inset: 0;
+      clip-path: polygon(52% 2%, 100% 100%, 100% 100%, 50% 100%);
+      background: linear-gradient(180deg, rgba(0,0,0,.15), rgba(0,0,0,0));
+      pointer-events: none;
+    }
 
         /* Spin button */
         #spinBtn { cursor:pointer; border: none; border-radius: 999px; padding: 14px 24px; font-weight: 800; letter-spacing:.4px; font-size: 16px; color: var(--white);
