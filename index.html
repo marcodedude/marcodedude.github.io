@@ -170,12 +170,13 @@
 
     // ===== Helpers =====
     function resizeCanvas(){
-      const dpr = Math.min(2, window.devicePixelRatio || 1);
-      const size = Math.min(wheel.clientWidth, 720);
+      const dpr = 1;
+      const size = Math.min(720);
       wheel.width = Math.round(size * dpr);
       wheel.height = Math.round(size * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       drawWheel(currentRotation);
+      console.log("window.devicePixelRatio= " + window.devicePixelRatio)
     }
 
     function fitText(ctx, text, maxW, maxLines = 2){
