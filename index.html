@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Electrum Career Day — Spin Wheel</title>
+    <style>
+        :root {
+          --white: #fff;
+          --dark-blue: #103184;
+          --transparent: #fff0;
+          --grey-subtle: #f4f5f8;
+          --dark-grey: #222734;
+          --grey-medium: #7a7f8c;
+          --grey-subtle-2: #e6e6e6;
+          --bright-blue: #72f7ff;
+          --sky-blue: #0085ff;
+          --navy: #0e1036;
+          --grey-light: #bbbec4;
+          --blue-shade-1: var(--sky-blue);
+          --blue-shade-2: #0b4dad;
+          --green: #62d960;
+          --red: #ff4e4e;
+          --green-2: #62d960;
+          --orange: #ff8d4e;
+          --yellow: #ffcd4e;
+          --red-2: #ff4e4e;
+          --purple: #a837ff;
+          --magenta: #ab1d72;
+        }
+
+        * { box-sizing: border-box; }
+        html, body { height: 100%; }
+        body {
+          margin: 0;
+          background: radial-gradient(1000px 700px at 50% -10%, #13183d 0%, var(--navy) 45%, #0a0d2a 100%);
+          color: var(--white);
+          font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+          display: grid;
+          grid-template-rows: auto 1fr auto;
+        }
+
+        header { display:flex; align-items:center; justify-content:center; gap:12px; padding:14px 16px; border-bottom: 1px solid rgba(255,255,255,.06); }
+        header .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--sky-blue); box-shadow: 0 0 18px var(--sky-blue); }
+        header h1 { font-size: 18px; font-weight: 700; margin: 0; color: var(--bright-blue); letter-spacing: .3px; }
+
+        main { display:grid; place-items:center; padding: 16px; }
+
+        .wrap { display:grid; gap:16px; place-items:center; }
+
+        /* Wheel stage */
+        .stage { position: relative; display:grid; place-items:center; }
+        canvas#wheel { width: min(82vw, 720px); aspect-ratio: 1/1; background: radial-gradient(65% 60% at 50% 45%, rgba(255,255,255,.04), rgba(255,255,255,0)); border-radius: 50%; filter: drop-shadow(0 20px 40px rgba(0,0,0,.35)); }
+
+      /* Pointer */
+      .pointer{
+        z-index: 100;
+        position:absolute;
+        top: -5px;
+        left: 50%;
+        transform: translateX(-50%) rotate(180deg); /* ← added */
+        width: 0; height: 0;
+        border-left: 16px solid transparent;
+        border-right: 16px solid transparent;
+        border-bottom: 28px solid var(--green);
+        filter: drop-shadow(0 6px 12px rgba(0,0,0,.5));
+      }
+
+        /* Spin button */
+        #spinBtn { cursor:pointer; border: none; border-radius: 999px; padding: 14px 24px; font-weight: 800; letter-spacing:.4px; font-size: 16px; color: var(--white);
+          background: linear-gradient(135deg, var(--sky-blue), var(--blue-shade-2));
+          box-shadow: 0 10px 20px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.1);
+          transition: transform .08s ease, filter .15s ease, box-shadow .15s ease;
+        }
+        #spinBtn:hover { filter: brightness(1.06); }
+        #spinBtn:active { transform: translateY(1px); }
+        #spinBtn[disabled] { opacity:.6; cursor:not-allowed; }
+
+        footer { color: var(--grey-light); font-size: 12px; text-align:center; padding: 10px; opacity:.8; }
+
+        /* Result modal */
+        dialog { border:none; border-radius: 16px; padding:0; width:min(520px, 92vw); color: var(--white); background: linear-gradient(180deg, #0f133a, #0a0e2e); box-shadow: 0 30px 80px rgba(0,0,0,.6); }
+        .modal-head { display:flex; align-items:center; justify-content:space-between; padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,.08); }
+        .modal-head strong { color: var(--bright-blue); letter-spacing:.3px; }
+        .modal-body { padding: 16px; display:grid; gap:8px; }
+        .benefit { font-size: 18px; font-weight: 800; color: var(--green); }
+        .prize { font-size: 14px; color: var(--grey-light); }
+        .modal-actions { display:flex; justify-content:center; padding: 10px 16px 16px; }
+        .secondary { cursor:pointer; border-radius:999px; padding: 12px 18px; font-weight:800; border:1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.06); color: var(--white); }
+        .secondary:hover { background: rgba(255,255,255,.1); }
+    </style>
+</head>
+<body>
+<header>
+    <span class="dot"></span>
+    <h1>Electrum Career Day — Spin the Wheel</h1>
+    <span class="dot"></span>
+</header>
+
+<main>
+    <div class="wrap">
+        <div class="stage">
+            <div class="pointer" aria-hidden="true"></div>
+            <canvas id="wheel"></canvas>
+        </div>
+        <button id="spinBtn" aria-label="Spin (Space)">▶ Spin</button>
+    </div>
+</main>
+
+<footer>Press Space to spin. After a result, press Space again or click “Spin Again”.</footer>
+
+<!-- Result Modal -->
+<dialog id="resultModal">
+    <div class="modal-head">
+        <strong>Result</strong>
+        <button id="closeModal" class="secondary" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+        <div class="benefit" id="benefitText">Benefit</div>
+        <div class="prize">Prize: <span id="prizeText">Prize</span></div>
+    </div>
+    <div class="modal-actions">
+        <button id="spinAgainBtn" class="secondary">Spin Again</button>
+    </div>
+</dialog>
+
+<script>
+    // ===== Data =====
+    const entries = [
+      { benefit: 'Café quality coffee', prize: 'Coffee mug' },
+      { benefit: 'Flexible working hours', prize: 'Moonbag' },
+      { benefit: 'Company getaways', prize: 'Bucket hat' },
+      { benefit: 'Catered lunches', prize: 'Biscuit' },
+      { benefit: 'Socials with family & partners', prize: 'Water bottle' },
+      { benefit: 'Career growth opportunities', prize: 'Dice and cards set' },
+      { benefit: 'Inhouse gaming', prize: 'Domino set' },
+      { benefit: 'World-class training', prize: '3-In-1 charging cable' },
+      { benefit: 'Your pick', prize: 'Pick your swag' },
+      { benefit: 'Spin again', prize: 'Spin again' },
+    ];
+
+    // ===== Elements =====
+    const wheel = document.getElementById('wheel');
+    const ctx = wheel.getContext('2d');
+    const spinBtn = document.getElementById('spinBtn');
+    const resultModal = document.getElementById('resultModal');
+    const closeModal = document.getElementById('closeModal');
+    const spinAgainBtn = document.getElementById('spinAgainBtn');
+    const benefitText = document.getElementById('benefitText');
+    const prizeText = document.getElementById('prizeText');
+
+    // ===== Colors for segments (on brand) =====
+    const css = getComputedStyle(document.documentElement);
+    const segmentPalette = [
+      css.getPropertyValue('--sky-blue').trim(),
+      css.getPropertyValue('--blue-shade-2').trim(),
+      css.getPropertyValue('--green').trim(),
+      css.getPropertyValue('--purple').trim(),
+      css.getPropertyValue('--orange').trim(),
+      css.getPropertyValue('--bright-blue').trim(),
+      css.getPropertyValue('--magenta').trim(),
+      css.getPropertyValue('--yellow').trim(),
+      css.getPropertyValue('--dark-blue').trim(),
+      css.getPropertyValue('--green-2').trim(),
+    ];
+
+    // ===== State =====
+    let currentRotation = 0; // radians
+    let spinning = false;
+
+    // ===== Helpers =====
+    function resizeCanvas(){
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      const size = Math.min(wheel.clientWidth, 1080);
+      wheel.width = Math.round(size * dpr);
+      wheel.height = Math.round(size * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      drawWheel(currentRotation);
+    }
+
+    function fitText(ctx, text, maxW, maxLines = 2){
+      // Simple wrap by words
+      const words = text.split(' ');
+      let lines = []; let line = '';
+      for(const w of words){
+        const test = line ? line + ' ' + w : w;
+        if(ctx.measureText(test).width <= maxW) line = test; else { lines.push(line); line = w; }
+      }
+      if(line) lines.push(line);
+      if(lines.length > maxLines) {
+        lines = lines.slice(0, maxLines);
+        const last = lines[lines.length-1];
+        // ellipsis if needed
+        while(ctx.measureText(last + '…').width > maxW) {
+          lines[lines.length-1] = lines[lines.length-1].slice(0, -1);
+        }
+        lines[lines.length-1] += '…';
+      }
+      return lines;
+    }
+
+    function drawWheel(rot = 0){
+      const W = wheel.width, H = wheel.height; const cx = W/2, cy = H/2; const R = Math.min(W,H)/2 - 12;
+      ctx.clearRect(0,0,W,H);
+      ctx.save();
+      ctx.translate(cx,cy);
+      ctx.rotate(rot);
+
+      const n = entries.length; const slice = Math.PI * 2 / n;
+      for(let i=0;i<n;i++){
+        const start = i * slice - Math.PI/2; // top as 0
+        const end = start + slice;
+        // segment fill
+        ctx.beginPath(); ctx.moveTo(0,0); ctx.arc(0,0,R,start,end,false); ctx.closePath();
+        ctx.fillStyle = segmentPalette[i % segmentPalette.length];
+        ctx.fill();
+        ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(0,0,0,.35)'; ctx.stroke();
+
+        // label
+        ctx.save();
+        ctx.rotate(start + slice/2);
+        //ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#fff';
+        ctx.font = '700 20px system-ui, -apple-system, Segoe UI, Roboto';
+        const maxW = R * 1.85;
+
+        const lines = fitText(ctx, entries[i].benefit, maxW, 2);
+        const lh = 18; const off = -((lines.length-1)/2) * lh;
+        // subtle text outline for contrast
+        ctx.strokeStyle = 'rgba(0,0,0,.6)'; ctx.lineWidth = 4; ctx.lineJoin='round';
+        lines.forEach((ln, idx)=>{ ctx.strokeText(ln, maxW*0.1, off + idx*lh); ctx.fillText(ln, maxW*0.1, off + idx*lh); });
+        ctx.restore();
+      }
+
+      // center cap
+      ctx.beginPath(); ctx.arc(0,0, 50, 0, Math.PI*2); ctx.fillStyle = css.getPropertyValue('--sky-blue').trim(); ctx.fill();
+      ctx.fillStyle = '#001631'; ctx.font = '800 18px system-ui, -apple-system, Segoe UI, Roboto'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('SPIN', 0, 0);
+
+      ctx.restore();
+    }
+
+    function rotationForIndex(i, spins = 6){
+      const n = entries.length;
+      const slice = Math.PI*2/n;
+      return spins * Math.PI*2 - ((i + 0.5) * slice - Math.PI/2);
+    }
+
+    function easeOutCubic(t){ return 1 - Math.pow(1 - t, 3); }
+
+    function pickRandomIndex(){ return Math.floor(Math.random() * entries.length); }
+
+    function spin(){
+      if(spinning) return;
+      if(resultModal.open) return; // modal must be closed first
+      spinning = true; spinBtn.disabled = true;
+
+      const index = pickRandomIndex();
+      console.log("index = " + index);
+      const extraSpins = 6 + Math.floor(Math.random()*3); // 6-8 turns
+      const start = currentRotation;
+      const target = rotationForIndex(index, extraSpins);
+      console.log("target = " + target);
+      const duration = 5200 + Math.floor(Math.random()*1000); // ms
+      const t0 = performance.now();
+
+      function frame(t){
+        const p = Math.min(1, (t - t0) / duration);
+        const e = easeOutCubic(p);
+        // start fast then slow -> interpolate
+        currentRotation = start + (target - start) * e;
+
+        drawWheel(currentRotation);
+        if(p < 1) requestAnimationFrame(frame); else finish();
+      }
+      requestAnimationFrame(frame);
+
+      function finish(){
+        currentRotation = target; drawWheel(currentRotation);
+        spinning = false; spinBtn.disabled = false;
+        const landed = entries[index];
+        showResult(landed);
+      }
+    }
+
+    function showResult(item){
+      const isSpinAgain = /spin again/i.test(item.benefit) || /spin again/i.test(item.prize);
+      if(isSpinAgain){
+        // Show a minimal modal too for consistency
+        benefitText.textContent = 'Spin again';
+        prizeText.textContent = 'Try another spin';
+      } else if(/your pick/i.test(item.benefit) || /pick your swag/i.test(item.prize)){
+        benefitText.textContent = 'Your pick';
+        prizeText.textContent = 'Pick your swag';
+      } else {
+        benefitText.textContent = item.benefit;
+        prizeText.textContent = item.prize;
+      }
+      resultModal.showModal();
+      spinBtn.setAttribute('disabled',''); // cannot spin while modal is open
+    }
+
+    // Modal controls
+    function closeResult(){ if(resultModal.open){ resultModal.close(); spinBtn.removeAttribute('disabled'); } }
+    closeModal.addEventListener('click', closeResult);
+    spinAgainBtn.addEventListener('click', closeResult);
+
+    // Keyboard: Space closes modal if open; else spins
+    document.addEventListener('keydown', (e) => {
+      // handle Space across browsers
+      const isSpace = e.code === 'Space' || e.key === ' ' || e.key === 'Spacebar';
+      if(!isSpace) return;
+      e.preventDefault();
+      if(resultModal.open){ closeResult(); return; }
+      spin();
+    });
+
+    // Button click
+    spinBtn.addEventListener('click', spin);
+
+    // Resize handling
+    const ro = new ResizeObserver(resizeCanvas); ro.observe(wheel);
+    window.addEventListener('load', resizeCanvas);
+    window.addEventListener('resize', resizeCanvas);
+</script>
+</body>
+</html>
