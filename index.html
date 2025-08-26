@@ -50,7 +50,7 @@
 
         /* Wheel stage */
         .stage { position: relative; display:grid; place-items:center; }
-        canvas#wheel { width: min(82vw, 720px); aspect-ratio: 1/1; background: radial-gradient(65% 60% at 50% 45%, rgba(255,255,255,.04), rgba(255,255,255,0)); border-radius: 50%; filter: drop-shadow(0 20px 40px rgba(0,0,0,.35)); }
+        canvas#wheel { width: 720px; aspect-ratio: 1/1; background: radial-gradient(65% 60% at 50% 45%, rgba(255,255,255,.04), rgba(255,255,255,0)); border-radius: 50%; filter: drop-shadow(0 20px 40px rgba(0,0,0,.35)); }
 
       /* Pointer */
       .pointer{
@@ -171,7 +171,7 @@
     // ===== Helpers =====
     function resizeCanvas(){
       const dpr = Math.min(2, window.devicePixelRatio || 1);
-      const size = Math.min(wheel.clientWidth, 1080);
+      const size = Math.min(wheel.clientWidth, 720);
       wheel.width = Math.round(size * dpr);
       wheel.height = Math.round(size * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
