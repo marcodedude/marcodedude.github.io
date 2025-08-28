@@ -54,6 +54,34 @@
                 font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
             }
 
+
+      .header-stack{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px; /* space between logo and title */
+      }
+
+      .title-row{
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .logo-pdf{
+        /* width: 140px;   /* adjust to taste */
+       /*  height: 140px;  /* adjust to taste */
+        display: block;
+        background: var(--transparent);
+        border: none;
+      }
+
+      .logo-img{
+        width: 520px;    /* tweak size */
+        height: auto;    /* keeps aspect ratio */
+        display: block;
+      }
+
         main { display:grid; place-items:center; padding: 16px; }
 
         .wrap { display:grid; gap:16px; place-items:center; }
@@ -121,6 +149,8 @@
         #spinBtn:active { transform: translateY(1px); }
         #spinBtn[disabled] { opacity:.6; cursor:not-allowed; }
 
+
+
         footer { color: var(--grey-light); font-size: 12px; text-align:center; padding: 10px; opacity:.8; }
 
         /* Result modal */
@@ -133,13 +163,31 @@
         .modal-actions { display:flex; justify-content:center; padding: 10px 16px 16px; }
         .secondary { cursor:pointer; border-radius:999px; padding: 12px 18px; font-weight:800; border:1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.06); color: var(--white); }
         .secondary:hover { background: rgba(255,255,255,.1); }
+
+        /* When the page is fullscreen, hide header/footer and pad less */
+        /* :fullscreen header, :fullscreen footer { display: none; }
+        :fullscreen main { padding: 0; } */
+
+        /* Safari/WebKit older prefix */
+        :-webkit-full-screen footer { display: none; }
+        :-webkit-full-screen main { padding: 0; }
+        /* :-webkit-full-screen header, */
+
     </style>
 </head>
 <body>
 <header>
-    <span class="dot"></span>
-    <h1>Spin the wheel and win some swag!</h1>
-    <span class="dot"></span>
+    <div class="header-stack">
+        <!-- PDF logo above the title -->
+        <img src="images/otherlogo.png" alt="Company logo" class="logo-img">
+
+        <!-- Original title row (dots + h1) -->
+        <div class="title-row">
+            <span class="dot"></span>
+            <h1>Spin the wheel and win some swag!</h1>
+            <span class="dot"></span>
+        </div>
+    </div>
 </header>
 
 <main>
@@ -149,6 +197,7 @@
             <canvas id="wheel"></canvas>
         </div>
         <button id="spinBtn" aria-label="Spin (Space)">▶ Spin</button>
+        <button id="fsBtn" class="secondary" aria-label="Toggle fullscreen">⛶ Fullscreen</button>
     </div>
 </main>
 
@@ -377,6 +426,45 @@
         ]).then(() => drawWheel(currentRotation));
   }
 });
+
+    const fsBtn = document.getElementById('fsBtn');
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        const el = document.documentElement; // or document.querySelector('.wrap')
+        (el.requestFullscreen || el.webkitRequestFullscreen).call(el);
+      } else {
+        (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+      }
+    }
+
+    // function toggleFullscreen() {
+    //   const el = document.documentElement; // ← full page (shows header + wheel)
+    //   if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+    //     (el.requestFullscreen || el.webkitRequestFullscreen).call(el);
+    //   } else {
+    //     (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+    //   }
+    // }
+
+    fsBtn.addEventListener('click', toggleFullscreen);
+
+    // Optional: press "f" to toggle fullscreen
+    document.addEventListener('keydown', (e) => {
+      if ((e.key || '').toLowerCase() === 'f') {
+        e.preventDefault();
+        toggleFullscreen();
+      }
+    });
+
+    // Keep the button text in sync
+    function syncFsButton() {
+      const active = !!(document.fullscreenElement || document.webkitFullscreenElement);
+      fsBtn.textContent = active ? '⤢ Exit Fullscreen' : '⛶ Fullscreen';
+    }
+    document.addEventListener('fullscreenchange', syncFsButton);
+    document.addEventListener('webkitfullscreenchange', syncFsButton);
+    syncFsButton();
 </script>
 </body>
 </html>
